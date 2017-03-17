@@ -1,13 +1,10 @@
 <?php
 namespace wpapioauth;
 /**
- * Plugin Name: Oauth plugin for WP-API JS.
+ * Plugin Name: WP-API JS OAuth
  *
  * Version 1.0.1
  */
-
-// Add a demo widget.
-include 'includes/demo-widget.php';
 
 /**
  * Set up the plugin.
