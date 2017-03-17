@@ -1,9 +1,13 @@
 <?php
+namespace wpapioauth;
 /**
  * Plugin Name: Oauth plugin for WP-API JS.
  *
  * Version 1.0.1
  */
+
+// Add a demo widget.
+include 'includes/demo-widget.php';
 
 /**
  * Set up the plugin.
@@ -31,7 +35,7 @@ function json_api_client_js() {
 	}
 
 	// Search for the OAuth1 authentication, and add any info to localized data.
-	$oauth_request = new WP_REST_Request( 'GET', '/' );
+	$oauth_request = new \WP_REST_Request( 'GET', '/' );
 	$oauth_response = $wp_rest_server->dispatch( $oauth_request );
 	$oauth1 = null;
 
@@ -65,5 +69,6 @@ function json_api_client_js() {
 
 }
 
-	add_action( 'wp_enqueue_scripts', 'json_api_client_js' );
-	add_action( 'admin_enqueue_scripts', 'json_api_client_js' );
+	add_action( 'wp_enqueue_scripts', 'wpapioauth\json_api_client_js' );
+	add_action( 'admin_enqueue_scripts', 'wpapioauth\json_api_client_js' );
+
