@@ -32,7 +32,7 @@ wp.oauth.setup = function( publicKey, secretKey, requestUrl, authorizeUrl ) {
 
 		// Request the authorization tokens.
 		jQuery.ajax( {
-			url: requestData.url,
+			url:  requestData.url,
 			type: requestData.method,
 
 			// Add the authorization headers.
@@ -50,6 +50,7 @@ wp.oauth.setup = function( publicKey, secretKey, requestUrl, authorizeUrl ) {
 			sessionStorage.setItem( 'tokenPublic', JSON.stringify( token['public'] ) );
 			sessionStorage.setItem( 'tokenSecret', JSON.stringify( token.secret ) );
 
+			// Redirect to the authorize URL.
 			window.location.href = authorizeUrl + '?oauth_token=' + token['public'];
 
 		} );
