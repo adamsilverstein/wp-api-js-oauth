@@ -7,53 +7,53 @@ wp.oauth = {};
 // Set up the oauth connection.
 wp.oauth.setup = function( publicKey, secretKey, requestUrl, authorizeUrl ) {
 
-wp.oauth.debug( 'Setup OAuth', requestUrl, [ publicKey, secretKey ] );
+	wp.oauth.debug( 'Setup OAuth', requestUrl, [ publicKey, secretKey ] );
 
-// We don't already have a token in the response.
-if ( _.isNull( wpApiOauthSettings.oauth1Token ) ) {
-	var token,
-		oauth = new OAuth( {
-			consumer: {
-				'public': publicKey,
-				'secret': secretKey
-			},
-			signature_method: 'HMAC-SHA1'
+	// We don't already have a token in the response, get one.
+	if ( _.isNull( wpApiOauthSettings.oauth1Token ) ) {
+		var token,
+			oauth = new OAuth( {
+				consumer: {
+					'public': publicKey,
+					'secret': secretKey
+				},
+				signature_method: 'HMAC-SHA1'
+
+			} );
+			requestData = {
+				url: requestUrl,
+				method: 'POST',
+				data: {
+					oauth_callback: window.location.toString().replace( location.search, '' )
+				}
+			};
+
+		wp.oauth.debug( 'Requesting authorization tokens' );
+
+		// Request the authorization tokens.
+		jQuery.ajax( {
+			url: requestData.url,
+			type: requestData.method,
+
+			// Add the authorization headers.
+			beforeSend: function( xhr ) {
+				var oauthHeaders = oauth.toHeader( oauth.authorize( requestData, token ) );
+				_.each( oauthHeaders, function( header, index ) {
+					xhr.setRequestHeader( index, header );
+				} );
+			}
+		} ).done( function( tokens ) {
+			wp.oauth.debug( 'Got authorization tokens, storing and redirecting' );
+			token = wp.oauth.extractTokens( tokens, true );
+
+			// Store the returned token data into the session.
+			sessionStorage.setItem( 'tokenPublic', JSON.stringify( token['public'] ) );
+			sessionStorage.setItem( 'tokenSecret', JSON.stringify( token.secret ) );
+
+			window.location.href = authorizeUrl + '?oauth_token=' + token['public'];
 
 		} );
-		requestData = {
-			url: requestUrl,
-			method: 'POST',
-			data: {
-				oauth_callback: window.location.toString().replace( location.search, '' )
-			}
-		};
-
-	wp.oauth.debug( 'Requesting authorization tokens' );
-
-	// Request the authorization tokens.
-	jQuery.ajax( {
-		url: requestData.url,
-		type: requestData.method,
-
-		// Add the authorization headers.
-		beforeSend: function( xhr ) {
-			var oauthHeaders = oauth.toHeader( oauth.authorize( requestData, token ) );
-			_.each( oauthHeaders, function( header, index ) {
-				xhr.setRequestHeader( index, header );
-			} );
-		}
-	} ).done( function( tokens ) {
-		wp.oauth.debug( 'Got authorization tokens, storing and redirecting' );
-		token = wp.oauth.extractTokens( tokens, true );
-
-		// Store the returned token data into the session.
-		sessionStorage.setItem( 'tokenPublic', JSON.stringify( token['public'] ) );
-		sessionStorage.setItem( 'tokenSecret', JSON.stringify( token.secret ) );
-
-		window.location.href = authorizeUrl + '?oauth_token=' + token['public'];
-
-	} );
-}
+	}
 };
 
 wp.oauth.debug = function( a = '', b = '', c = '' ) {
@@ -81,13 +81,14 @@ wp.oauth.extractTokens = function( tokens, hasAdditionalData ) {
 };
 
 // Set up OAuth, using localized or passed credentials.
-wp.oauth.connect = function( publicKey, secretKey, request, authorize ) {
+wp.oauth.connect = function( publicKey, secretKey, request, authorize, access ) {
 	var secretKey = secretKey || wpApiOauthSettings.oauth1Secret,
 		publicKey = publicKey || wpApiOauthSettings.oauth1Public;
 		wp.oauth.debug( 'OAuth Connect' );
 
-	wp.oauth.debug( 'OAuth connecting' );
+	sessionStorage.setItem( 'oauth1AccessUrl', access );
 
+	wp.oauth.debug( 'OAuth connecting' );
 
 	if ( ! localStorage.getItem( 'wpOathToken' ) ) {
 
@@ -95,13 +96,15 @@ wp.oauth.connect = function( publicKey, secretKey, request, authorize ) {
 		wp.oauth.setup( publicKey, secretKey, request, authorize );
 	}
 };
-var originalInit = Backbone.Model.prototype.initialize;
-wpApiOauthSettings.oauth1 = { 'access': 'http://wpdev.localhost/oauth1/access' }
-Backbone.Model.prototype.initialize = function( model, arguments ) {
+
+wp.oauth.getLongTermToken = function( accessUrl ) {
+
+	wp.oauth.debug( 'wp.oauth getLongTermToken' );
+
 
 	// NEXT STEP: Handle the returned temporary OAuth token, requesting a long term token.
 	if ( ( ! _.isNull( wpApiOauthSettings.oauth1Token ) && ( ! localStorage.getItem( 'wpOathToken' ) ) ) ) {
-		wp.oauth.debug( 'Found wpOathToken' );
+		wp.oauth.debug( 'Found oauth1Token' );
 		// Construct a new request to get a long term authorization token.
 		token = {
 			'public': JSON.parse( sessionStorage.getItem( 'tokenPublic' ) ),
@@ -116,7 +119,7 @@ Backbone.Model.prototype.initialize = function( model, arguments ) {
 
 		} );
 		requestData = {
-			url: wpApiOauthSettings.oauth1.access,
+			url: accessUrl,
 			method: 'POST',
 			data: {
 				oauth_callback: window.location.toString().replace( location.search, '' ),
@@ -149,9 +152,6 @@ Backbone.Model.prototype.initialize = function( model, arguments ) {
 	} else {
 		wp.oauth.debug( 'Didn\'t find OAuth token' );
 	}
-
-	originalInit.apply( model, arguments );
-
 }
 	/**
 	 * Set nonce header before every Backbone sync.
@@ -178,6 +178,9 @@ wp.api.WPApiBaseModel.prototype.sync = function( method, model, options ) {
 
 	// Use OAuth authentication if available.
 	token = JSON.parse( localStorage.getItem( 'wpOathToken' ) );
+
+	wp.oauth.debug( 'Sync with OAuth', token );
+
 	if ( ! _.isUndefined( token ) ) {
 
 		oauth = new OAuth( {
@@ -199,9 +202,6 @@ wp.api.WPApiBaseModel.prototype.sync = function( method, model, options ) {
 			} );
 
 		};
-
-		// When using OAuth, turn off nonce/cookie authentication.
-		delete wpApiSettings.nonce;
 
 	}
 
@@ -225,4 +225,13 @@ wp.api.WPApiBaseModel.prototype.sync = function( method, model, options ) {
 		model.url = model.url() + '?force=true';
 	}
 	return Backbone.sync( method, model, options );
+}
+
+/**
+ * If we have short term tokens and not a long term token, request one.
+ */
+var wpOathToken = localStorage.getItem( 'wpOathToken' );
+
+if ( ! wpOathToken && wpApiOauthSettings.oauth1Token ) {
+	wp.oauth.getLongTermToken( sessionStorage.getItem( 'oauth1AccessUrl' ) );
 }
