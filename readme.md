@@ -13,11 +13,11 @@ Initial release. Development ongoing at https://github.com/adamsilverstein/wp-ap
 Connect to the OAuth server:
 ```js
 wp.oauth.connect(
-  OAuthWidgetSettings.credentials.clientKey,    // The application client key.
-  OAuthWidgetSettings.credentials.clientSecret, // The application client secret.
-  site + 'oauth1/request',    // The site request endpoint.
-  site + 'oauth1/authorize',  // The site authorize endpoint.
-  site + 'oauth1/access'      // The site access endpoint.
+	clientKey,          // The application client key.
+	clientSecret,       // The application client secret.
+	'oauth1/request',   // The site request endpoint.
+	'oauth1/authorize', // The site authorize endpoint.
+	'oauth1/access'     // The site access endpoint.
 );
 ```
 
