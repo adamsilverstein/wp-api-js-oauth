@@ -2,7 +2,9 @@
   "dependencies": {
     "base64-min": "^1.2.0",
     "crypto-js": "^3.1.9-1",
+    "grunt": "^1.0.1",
     "hmacsha1": "^1.0.0",
+    "jshint": "^2.9.4",
     "oauth-1.0a": "^2.1.0"
   }
 }
