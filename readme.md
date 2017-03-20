@@ -1,12 +1,14 @@
 ## WP-API JS OAuth
 
 ## About
-OAuth1 support for the wp-api.js WordPress Backbone JavaScript client. Requires WordPress 4.7.x.
+OAuth1 support for the wp-api.js JavaScript client.
+
+Requires WordPress 4.7.x.
 
 Initial release. Development ongoing at https://github.com/adamsilverstein/wp-api-js-oauth.
 
 ## Use
-*Install the OAuth1 plugin on the site you want to access and generate an Application key.*
+*Install the [OAuth1 plugin](https://github.com/WP-API/OAuth1) on the site you want to access and generate an Application key.*
 
 Connect to the OAuth server:
 ```js
