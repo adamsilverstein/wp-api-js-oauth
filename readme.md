@@ -43,3 +43,7 @@ wp.oauth.getLongTermToken
 ```
 wp.api.WPApiBaseModel.prototype.sync
 ```
+
+### Example:
+
+Check out this [demonstration widget plugin](https://github.com/adamsilverstein/wp-api-js-oauth-widget) to see the OAuth feature in action.
