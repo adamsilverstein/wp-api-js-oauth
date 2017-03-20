@@ -26,3 +26,18 @@ The client will make a second request to retrieve the long term token and stores
 The client will detect the presence of the authorization token and use it for all authenticated requests.
 
 Currently there is no renewal mechanism for expired tokens.
+
+###Provides:###
+```
+wp.oauth.setup
+wp.oauth.debug
+wp.oauth.extractTokens
+wp.oauth.connect
+wp.oauth.getLongTermToken
+
+```
+
+###Extends:###
+```
+wp.api.WPApiBaseModel.prototype.sync
+```
