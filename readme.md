@@ -37,6 +37,7 @@ wp.oauth.getLongTermToken
 
 ```
 
-   ```
+### Extends:
+```
 wp.api.WPApiBaseModel.prototype.sync
 ```
